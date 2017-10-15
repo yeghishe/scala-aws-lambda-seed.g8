@@ -22,23 +22,26 @@ libraryDependencies ++= {
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
 Defaults.itSettings
+coverageEnabled := true
 
 initialCommands := """
-import io.github.yeghishe._
-import io.github.yeghishe.lambda._
-import scala.concurrent._
-import scala.concurrent.duration._
+  import io.github.yeghishe._
+  import io.github.yeghishe.lambda._
+  import scala.concurrent._
+  import scala.concurrent.duration._
 """.stripMargin
 
-jarName in assembly := s"\${name.value}.jar"
+assemblyJarName in assembly := s"\${name.value}.jar"
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _ *) => MergeStrategy.discard
   case _                              => MergeStrategy.first
 }
 
-import S3._
-s3Settings
-mappings in upload := Seq((file(s"target/scala-2.11/\${name.value}.jar"), s"\${name.value}.jar"))
-host in upload := "<YOUR S3 BUCKET>.s3.amazonaws.com"
-progress in upload := true
-upload <<= upload dependsOn assembly
+enablePlugins(S3Plugin)
+mappings in s3Upload := Seq((file(s"target/scala-2.12/\${name.value}.jar"), s"\${name.value}.jar"))
+s3Host in s3Upload := "$s3_bucket$.s3.amazonaws.com"
+s3Progress in s3Upload := true
+//s3Upload <<= s3Upload dependsOn assembly
+//s3Upload := {
+//  assembly.value
+//}
